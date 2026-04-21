@@ -1,0 +1,933 @@
+
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор Розничной Точки</title>
+    <style>
+        :root {
+            --color-red-bg: #ffe6e6;
+            --color-red-border: #ffcccc;
+            --color-red-text: #cc0000;
+            --color-yellow-bg: #fff9e6;
+            --color-yellow-border: #fff0cc;
+            --color-yellow-text: #cc9900;
+            --color-green-bg: #e6ffe6;
+            --color-green-border: #ccffcc;
+            --color-green-text: #006600;
+            --color-gray-bg: #f5f5f5;
+            --color-gray-dark: #666;
+            --color-border: #ddd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--color-gray-bg);
+            border-bottom: 2px solid var(--color-border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 16px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 30px 0 15px 0;
+            padding: 12px;
+            background: var(--color-gray-bg);
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--color-border), transparent);
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--color-gray-bg);
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        .col-red { background: var(--color-red-bg); border-left: 3px solid var(--color-red-border); }
+        .col-yellow { background: var(--color-yellow-bg); border-left: 3px solid var(--color-yellow-border); }
+        .col-green { background: var(--color-green-bg); border-left: 3px solid var(--color-green-border); }
+
+        .header-red { background: var(--color-red-bg); color: var(--color-red-text); font-weight: 600; }
+        .header-yellow { background: var(--color-yellow-bg); color: var(--color-yellow-text); font-weight: 600; }
+        .header-green { background: var(--color-green-bg); color: var(--color-green-text); font-weight: 600; }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .negative { color: var(--color-red-text); font-weight: 600; }
+        .positive { color: var(--color-green-text); font-weight: 600; }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 2px solid var(--color-border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--color-gray-dark);
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: var(--color-gray-bg);
+            border-radius: 12px;
+        }
+
+        .instruction-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--color-gray-bg);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .instruction-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .tabs, .btn-calculate { display: none; }
+            .tab-content { display: block !important; page-break-after: always; }
+        }
+
+        @media (max-width: 768px) {
+            .tabs { flex-wrap: wrap; }
+            .tab { flex: 1 1 auto; }
+            table { font-size: 12px; }
+            th, td { padding: 8px 6px; }
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Калькулятор Розничной Точки</h1>
+            <p class="subtitle">Финансовая модель с тремя сценариями развития</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('data')">📊 Исходные данные</button>
+            <button class="tab" onclick="showTab('calc')">🧮 Расчеты</button>
+            <button class="tab" onclick="showTab('summary')">📋 Сводка</button>
+            <button class="tab" onclick="showTab('dynamics')">📅 Динамика</button>
+            <button class="tab" onclick="showTab('instructions')">📖 Инструкция</button>
+        </div>
+
+        <div id="data" class="tab-content active">
+            <button class="btn-calculate" onclick="calculate()">🔄 Пересчитать все показатели</button>
+            
+            <div class="section-title">🚶 ТРАФИК И КОНВЕРСИЯ</div>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th class="header-red">🔴 Пессимистичный</th>
+                    <th class="header-yellow">🟡 Базовый</th>
+                    <th class="header-green">🟢 Оптимистичный</th>
+                    <th>Единица</th>
+                </tr>
+                <tr>
+                    <td>Посетителей в день (базовые)</td>
+                    <td class="col-red"><input type="number" id="visitors_pessimistic" value="80"></td>
+                    <td class="col-yellow"><input type="number" id="visitors_base" value="150"></td>
+                    <td class="col-green"><input type="number" id="visitors_optimistic" value="250"></td>
+                    <td>чел</td>
+                </tr>
+                <tr>
+                    <td>Рабочих дней в месяц</td>
+                    <td class="col-red"><input type="number" id="workdays_pessimistic" value="26"></td>
+                    <td class="col-yellow"><input type="number" id="workdays_base" value="26"></td>
+                    <td class="col-green"><input type="number" id="workdays_optimistic" value="26"></td>
+                    <td>дней</td>
+                </tr>
+                <tr>
+                    <td>Конверсия</td>
+                    <td class="col-red"><input type="number" id="conversion_pessimistic" value="15"></td>
+                    <td class="col-yellow"><input type="number" id="conversion_base" value="25"></td>
+                    <td class="col-green"><input type="number" id="conversion_optimistic" value="35"></td>
+                    <td>%</td>
+                </tr>
+            </table>
+
+            <div class="section-title">📅 КОЭФФИЦИЕНТ СЕЗОННОСТИ ПО МЕСЯЦАМ</div>
+            <table>
+                <tr>
+                    <th>Месяц</th>
+                    <th colspan="3" style="text-align: center;">Коэффициент</th>
+                    <th>Примечание</th>
+                </tr>
+                <tr>
+                    <td>Январь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_1" value="0.73" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Низкая активность после праздников</td>
+                </tr>
+                <tr>
+                    <td>Февраль</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_2" value="0.80" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Восстановление спроса</td>
+                </tr>
+                <tr>
+                    <td>Март</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_3" value="0.91" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Рост к 8 марта</td>
+                </tr>
+                <tr>
+                    <td>Апрель</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_4" value="0.95" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Весенний период</td>
+                </tr>
+                <tr>
+                    <td>Май</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_5" value="1.00" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Нормальный уровень</td>
+                </tr>
+                <tr>
+                    <td>Июнь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_6" value="0.99" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Стабильный спрос</td>
+                </tr>
+                <tr>
+                    <td>Июль</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_7" value="1.05" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Летний пик</td>
+                </tr>
+                <tr>
+                    <td>Август</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_8" value="1.12" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Высокий сезон</td>
+                </tr>
+                <tr>
+                    <td>Сентябрь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_9" value="1.02" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Начало учебного года</td>
+                </tr>
+                <tr>
+                    <td>Октябрь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_10" value="1.02" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Стабильный спрос</td>
+                </tr>
+                <tr>
+                    <td>Ноябрь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_11" value="0.94" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Снижение активности</td>
+                </tr>
+                <tr>
+                    <td>Декабрь</td>
+                    <td colspan="3" style="text-align: center;"><input type="number" step="0.01" id="seasonality_12" value="1.05" style="width: 100px; margin: 0 auto; display: block;"></td>
+                    <td>Новогодний пик</td>
+                </tr>
+            </table>
+
+            <div class="section-title">💰 СРЕДНИЙ ЧЕК И МАРЖИНАЛЬНОСТЬ</div>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th class="header-red">🔴 Пессимистичный</th>
+                    <th class="header-yellow">🟡 Базовый</th>
+                    <th class="header-green">🟢 Оптимистичный</th>
+                    <th>Единица</th>
+                </tr>
+                <tr>
+                    <td>Средний чек</td>
+                    <td class="col-red"><input type="number" id="avgcheck_pessimistic" value="1200"></td>
+                    <td class="col-yellow"><input type="number" id="avgcheck_base" value="1800"></td>
+                    <td class="col-green"><input type="number" id="avgcheck_optimistic" value="2500"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Валовая маржа</td>
+                    <td class="col-red"><input type="number" id="margin_pessimistic" value="25"></td>
+                    <td class="col-yellow"><input type="number" id="margin_base" value="35"></td>
+                    <td class="col-green"><input type="number" id="margin_optimistic" value="45"></td>
+                    <td>%</td>
+                </tr>
+            </table>
+
+            <div class="section-title">💸 ОПЕРАЦИОННЫЕ РАСХОДЫ (ежемесячно)</div>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th class="header-red">🔴 Пессимистичный</th>
+                    <th class="header-yellow">🟡 Базовый</th>
+                    <th class="header-green">🟢 Оптимистичный</th>
+                    <th>Единица</th>
+                </tr>
+                <tr>
+                    <td>Аренда</td>
+                    <td class="col-red"><input type="number" id="rent_pessimistic" value="120000"></td>
+                    <td class="col-yellow"><input type="number" id="rent_base" value="120000"></td>
+                    <td class="col-green"><input type="number" id="rent_optimistic" value="120000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>ФОТ (зарплаты + налоги)</td>
+                    <td class="col-red"><input type="number" id="fot_pessimistic" value="180000"></td>
+                    <td class="col-yellow"><input type="number" id="fot_base" value="180000"></td>
+                    <td class="col-green"><input type="number" id="fot_optimistic" value="200000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Коммунальные платежи</td>
+                    <td class="col-red"><input type="number" id="utilities_pessimistic" value="15000"></td>
+                    <td class="col-yellow"><input type="number" id="utilities_base" value="15000"></td>
+                    <td class="col-green"><input type="number" id="utilities_optimistic" value="15000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Маркетинг и реклама</td>
+                    <td class="col-red"><input type="number" id="marketing_pessimistic" value="30000"></td>
+                    <td class="col-yellow"><input type="number" id="marketing_base" value="40000"></td>
+                    <td class="col-green"><input type="number" id="marketing_optimistic" value="60000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Прочие OPEX</td>
+                    <td class="col-red"><input type="number" id="other_opex_pessimistic" value="25000"></td>
+                    <td class="col-yellow"><input type="number" id="other_opex_base" value="30000"></td>
+                    <td class="col-green"><input type="number" id="other_opex_optimistic" value="35000"></td>
+                    <td>руб</td>
+                </tr>
+            </table>
+
+            <div class="section-title">🏗️ КАПИТАЛЬНЫЕ ЗАТРАТЫ (единоразово)</div>
+            <table>
+                <tr>
+                    <th>Параметр</th>
+                    <th class="header-red">🔴 Пессимистичный</th>
+                    <th class="header-yellow">🟡 Базовый</th>
+                    <th class="header-green">🟢 Оптимистичный</th>
+                    <th>Единица</th>
+                </tr>
+                <tr>
+                    <td>Ремонт и дизайн</td>
+                    <td class="col-red"><input type="number" id="repair_pessimistic" value="500000"></td>
+                    <td class="col-yellow"><input type="number" id="repair_base" value="500000"></td>
+                    <td class="col-green"><input type="number" id="repair_optimistic" value="500000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Оборудование и мебель</td>
+                    <td class="col-red"><input type="number" id="equipment_pessimistic" value="400000"></td>
+                    <td class="col-yellow"><input type="number" id="equipment_base" value="400000"></td>
+                    <td class="col-green"><input type="number" id="equipment_optimistic" value="400000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Первоначальный запас товара</td>
+                    <td class="col-red"><input type="number" id="inventory_pessimistic" value="350000"></td>
+                    <td class="col-yellow"><input type="number" id="inventory_base" value="350000"></td>
+                    <td class="col-green"><input type="number" id="inventory_optimistic" value="350000"></td>
+                    <td>руб</td>
+                </tr>
+                <tr>
+                    <td>Прочие CAPEX</td>
+                    <td class="col-red"><input type="number" id="other_capex_pessimistic" value="150000"></td>
+                    <td class="col-yellow"><input type="number" id="other_capex_base" value="150000"></td>
+                    <td class="col-green"><input type="number" id="other_capex_optimistic" value="150000"></td>
+                    <td>руб</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="calc" class="tab-content">
+            <div class="section-title">📈 ВЫРУЧКА</div>
+            <table id="revenue-table"></table>
+
+            <div class="section-title">💎 ПРИБЫЛЬНОСТЬ</div>
+            <table id="profit-table"></table>
+
+            <div class="section-title">💸 ОПЕРАЦИОННЫЕ РАСХОДЫ</div>
+            <table id="opex-table"></table>
+
+            <div class="section-title">⭐ EBITDA</div>
+            <table id="ebitda-table"></table>
+
+            <div class="section-title">🏗️ КАПИТАЛЬНЫЕ ЗАТРАТЫ</div>
+            <table id="capex-table"></table>
+
+            <div class="section-title">🎯 ОКУПАЕМОСТЬ</div>
+            <table id="payback-table"></table>
+
+            <div class="section-title">📊 ROI</div>
+            <table id="roi-table"></table>
+        </div>
+
+        <div id="summary" class="tab-content">
+            <div class="summary-grid">
+                <div class="summary-card" style="border-color: var(--color-red-border);">
+                    <h3 style="color: var(--color-red-text);">🔴 Пессимистичный сценарий</h3>
+                    <div id="summary-pessimistic"></div>
+                </div>
+                <div class="summary-card" style="border-color: var(--color-yellow-border);">
+                    <h3 style="color: var(--color-yellow-text);">🟡 Базовый сценарий</h3>
+                    <div id="summary-base"></div>
+                </div>
+                <div class="summary-card" style="border-color: var(--color-green-border);">
+                    <h3 style="color: var(--color-green-text);">🟢 Оптимистичный сценарий</h3>
+                    <div id="summary-optimistic"></div>
+                </div>
+            </div>
+
+            <div class="section-title">💡 ВЫВОДЫ ПО СЦЕНАРИЯМ</div>
+            <div class="instruction-item" style="border-left-color: var(--color-red-text);">
+                <div class="instruction-title" style="color: var(--color-red-text);">🔴 Пессимистичный</div>
+                <p>Убыточный сценарий. Не достигается безубыточность. Требуется увеличение трафика или конверсии минимум в 3 раза.</p>
+            </div>
+            <div class="instruction-item" style="border-left-color: var(--color-yellow-text);">
+                <div class="instruction-title" style="color: var(--color-yellow-text);">🟡 Базовый</div>
+                <p>Реалистичный сценарий. Окупаемость 6 месяцев. Стабильная прибыльность при средних показателях рынка.</p>
+            </div>
+            <div class="instruction-item" style="border-left-color: var(--color-green-text);">
+                <div class="instruction-title" style="color: var(--color-green-text);">🟢 Оптимистичный</div>
+                <p>Высокорентабельный сценарий. Быстрая окупаемость менее 1 месяца. Возможен при премиум-локации и сильном бренде.</p>
+            </div>
+        </div>
+
+        <div id="dynamics" class="tab-content">
+            <div class="section-title">📅 ПОМЕСЯЧНАЯ ДИНАМИКА ДЕНЕЖНОГО ПОТОКА</div>
+            <table id="dynamics-table"></table>
+        </div>
+
+        <div id="instructions" class="tab-content">
+            <div class="instruction-item">
+                <div class="instruction-title">1️⃣ ИСХОДНЫЕ ДАННЫЕ</div>
+                <p>Введите свои параметры во вкладке "Исходные данные" для каждого из трех сценариев:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Пессимистичный: низкий трафик, минимальная конверсия</li>
+                    <li>Базовый: реалистичные средние показатели</li>
+                    <li>Оптимистичный: высокий трафик, максимальная конверсия</li>
+                </ul>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">2️⃣ ОСНОВНЫЕ ПОКАЗАТЕЛИ</div>
+                <p><strong>🚶 Трафик</strong> - Количество посетителей магазина в день</p>
+                <p><strong>🎯 Конверсия</strong> - % посетителей, совершивших покупку (15-35% для розницы)</p>
+                <p><strong>💰 Средний чек</strong> - Средняя сумма одной покупки в рублях</p>
+                <p><strong>💎 Валовая маржа</strong> - % наценки от выручки после себестоимости товара</p>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">3️⃣ РАСХОДЫ</div>
+                <p><strong>💸 OPEX</strong> - Операционные расходы: ежемесячные затраты на содержание</p>
+                <p><strong>🏗️ CAPEX</strong> - Капитальные затраты: единоразовые инвестиции при открытии</p>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">4️⃣ КЛЮЧЕВЫЕ МЕТРИКИ</div>
+                <p><strong>⭐ EBITDA</strong> - Прибыль до вычета процентов, налогов и амортизации</p>
+                <p><strong>🎯 Точка безубыточности</strong> - Минимальная выручка для покрытия расходов</p>
+                <p><strong>⏱️ Срок окупаемости</strong> - Время возврата первоначальных инвестиций</p>
+                <p><strong>📊 ROI</strong> - Рентабельность инвестиций в процентах</p>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">5️⃣ КОЭФФИЦИЕНТ СЕЗОННОСТИ</div>
+                <p><strong>📅 Сезонность</strong> - Корректирующий коэффициент спроса по месяцам (1.00 = норма)</p>
+                <p>• Коэффициент < 1.00 означает снижение спроса (например, 0.73 = -27% от нормы)</p>
+                <p>• Коэффициент > 1.00 означает повышение спроса (например, 1.12 = +12% к норме)</p>
+                <p>• Настройте коэффициенты под специфику вашего бизнеса</p>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">6️⃣ АНАЛИЗ РЕЗУЛЬТАТОВ</div>
+                <p>• Смотрите вкладку "Сводка" для сравнения сценариев</p>
+                <p>• Вкладка "Динамика" показывает накопление денежного потока с учетом сезонности</p>
+                <p>• При отрицательной EBITDA проект не окупается - корректируйте параметры</p>
+            </div>
+
+            <div class="instruction-item">
+                <div class="instruction-title">📚 ИСТОЧНИКИ ДАННЫХ</div>
+                <p>• Средняя конверсия в рознице: 20-40% (Retail TouchPoints, 2024)</p>
+                <p>• Типичные CAPEX для розницы: 1-3 млн руб (отраслевая статистика 2026)</p>
+                <p>• Оптимальная EBITDA маржа: 10-20% для устойчивого бизнеса</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('ru-RU').format(Math.round(num));
+        }
+
+        function getValue(id) {
+            return parseFloat(document.getElementById(id).value) || 0;
+        }
+
+        function getSeasonality(month) {
+            return getValue(`seasonality_${month}`);
+        }
+
+        function calculate() {
+            const scenarios = ['pessimistic', 'base', 'optimistic'];
+            const results = {};
+
+            scenarios.forEach(scenario => {
+                const visitors = getValue(`visitors_${scenario}`);
+                const workdays = getValue(`workdays_${scenario}`);
+                const conversion = getValue(`conversion_${scenario}`) / 100;
+                const avgCheck = getValue(`avgcheck_${scenario}`);
+                const margin = getValue(`margin_${scenario}`) / 100;
+                
+                const rent = getValue(`rent_${scenario}`);
+                const fot = getValue(`fot_${scenario}`);
+                const utilities = getValue(`utilities_${scenario}`);
+                const marketing = getValue(`marketing_${scenario}`);
+                const otherOpex = getValue(`other_opex_${scenario}`);
+                
+                const repair = getValue(`repair_${scenario}`);
+                const equipment = getValue(`equipment_${scenario}`);
+                const inventory = getValue(`inventory_${scenario}`);
+                const otherCapex = getValue(`other_capex_${scenario}`);
+
+                const buyersPerDay = visitors * conversion;
+                const buyersPerMonth = buyersPerDay * workdays;
+                const revenueMonth = buyersPerMonth * avgCheck;
+                const revenueYear = revenueMonth * 12;
+                
+                const grossProfitMonth = revenueMonth * margin;
+                const grossProfitYear = grossProfitMonth * 12;
+                
+                const opexMonth = rent + fot + utilities + marketing + otherOpex;
+                const opexYear = opexMonth * 12;
+                
+                const ebitdaMonth = grossProfitMonth - opexMonth;
+                const ebitdaYear = ebitdaMonth * 12;
+                const ebitdaMargin = (ebitdaYear / revenueYear) * 100;
+                
+                const capex = repair + equipment + inventory + otherCapex;
+                
+                const breakeven = opexMonth / margin;
+                const safetyMargin = ((revenueMonth - breakeven) / revenueMonth) * 100;
+                const paybackMonths = ebitdaMonth > 0 ? capex / ebitdaMonth : -1;
+                const paybackYears = paybackMonths > 0 ? paybackMonths / 12 : -1;
+                
+                const roi1Year = ((ebitdaYear - capex) / capex) * 100;
+                const roi3Years = (((ebitdaYear * 3) - capex) / capex) * 100;
+
+                results[scenario] = {
+                    buyersPerDay, buyersPerMonth, revenueMonth, revenueYear,
+                    grossProfitMonth, grossProfitYear, opexMonth, opexYear,
+                    ebitdaMonth, ebitdaYear, ebitdaMargin, capex,
+                    breakeven, safetyMargin, paybackMonths, paybackYears,
+                    roi1Year, roi3Years
+                };
+            });
+
+            renderCalculations(results);
+            renderSummary(results);
+            renderDynamics(results);
+        }
+
+        function renderCalculations(results) {
+            const colors = {pessimistic: 'red', base: 'yellow', optimistic: 'green'};
+            const icons = {pessimistic: '🔴', base: '🟡', optimistic: '🟢'};
+            
+            // Revenue table
+            let html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>Покупателей в день</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].buyersPerDay)}</td>`);
+            html += '<td>Посетители × Конверсия</td></tr>';
+            
+            html += `<tr><td>Покупателей в месяц</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].buyersPerMonth)}</td>`);
+            html += '<td>Покупателей/день × Раб.дни</td></tr>';
+            
+            html += `<tr><td>Выручка в месяц</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].revenueMonth)}</td>`);
+            html += '<td>Покупатели/мес × Средний чек</td></tr>';
+            
+            html += `<tr><td>Выручка в год</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].revenueYear)}</td>`);
+            html += '<td>Выручка/мес × 12</td></tr>';
+            
+            document.getElementById('revenue-table').innerHTML = html;
+
+            // Profit table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>Валовая прибыль в месяц</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].grossProfitMonth)}</td>`);
+            html += '<td>Выручка × Валовая маржа %</td></tr>';
+            
+            html += `<tr><td>Валовая прибыль в год</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].grossProfitYear)}</td>`);
+            html += '<td>Вал.прибыль/мес × 12</td></tr>';
+            
+            document.getElementById('profit-table').innerHTML = html;
+
+            // OPEX table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>Итого OPEX в месяц</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].opexMonth)}</td>`);
+            html += '<td>Сумма всех OPEX</td></tr>';
+            
+            html += `<tr><td>Итого OPEX в год</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].opexYear)}</td>`);
+            html += '<td>OPEX/мес × 12</td></tr>';
+            
+            document.getElementById('opex-table').innerHTML = html;
+
+            // EBITDA table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>EBITDA в месяц</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].ebitdaMonth < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${formatNumber(results[s].ebitdaMonth)}</td>`;
+            });
+            html += '<td>Вал.прибыль - OPEX</td></tr>';
+            
+            html += `<tr><td>EBITDA в год</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].ebitdaYear < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${formatNumber(results[s].ebitdaYear)}</td>`;
+            });
+            html += '<td>EBITDA/мес × 12</td></tr>';
+            
+            html += `<tr><td>EBITDA маржа, %</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].ebitdaMargin < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${results[s].ebitdaMargin.toFixed(0)}%</td>`;
+            });
+            html += '<td>EBITDA / Выручка × 100</td></tr>';
+            
+            document.getElementById('ebitda-table').innerHTML = html;
+
+            // CAPEX table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>Итого CAPEX</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].capex)}</td>`);
+            html += '<td>Сумма всех CAPEX</td></tr>';
+            
+            document.getElementById('capex-table').innerHTML = html;
+
+            // Payback table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>Точка безубыточности (выручка/мес)</td>`;
+            Object.keys(results).forEach(s => html += `<td class="col-${colors[s]}">${formatNumber(results[s].breakeven)}</td>`);
+            html += '<td>OPEX / Валовая маржа %</td></tr>';
+            
+            html += `<tr><td>Запас прочности, %</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].safetyMargin < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${results[s].safetyMargin.toFixed(0)}%</td>`;
+            });
+            html += '<td>(Выручка - ТБУ) / Выручка × 100</td></tr>';
+            
+            html += `<tr><td>Срок окупаемости (месяцев)</td>`;
+            Object.keys(results).forEach(s => {
+                const val = results[s].paybackMonths > 0 ? results[s].paybackMonths.toFixed(1) : 'Не окупается';
+                html += `<td class="col-${colors[s]}">${val}</td>`;
+            });
+            html += '<td>CAPEX / EBITDA (мес), если EBITDA>0</td></tr>';
+            
+            html += `<tr><td>Срок окупаемости (лет)</td>`;
+            Object.keys(results).forEach(s => {
+                const val = results[s].paybackYears > 0 ? results[s].paybackYears.toFixed(2) : 'Не окупается';
+                html += `<td class="col-${colors[s]}">${val}</td>`;
+            });
+            html += '<td>Месяцы / 12</td></tr>';
+            
+            document.getElementById('payback-table').innerHTML = html;
+
+            // ROI table
+            html = '<tr><th>Показатель</th>';
+            Object.keys(results).forEach(s => html += `<th class="header-${colors[s]}">${icons[s]} ${s === 'pessimistic' ? 'Пессимистичный' : s === 'base' ? 'Базовый' : 'Оптимистичный'}</th>`);
+            html += '<th>Формула</th></tr>';
+            
+            html += `<tr><td>ROI за 1 год, %</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].roi1Year < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${results[s].roi1Year.toFixed(0)}%</td>`;
+            });
+            html += '<td>(EBITDA год - CAPEX) / CAPEX × 100</td></tr>';
+            
+            html += `<tr><td>ROI за 3 года, %</td>`;
+            Object.keys(results).forEach(s => {
+                const cls = results[s].roi3Years < 0 ? 'negative' : 'positive';
+                html += `<td class="col-${colors[s]} ${cls}">${results[s].roi3Years.toFixed(0)}%</td>`;
+            });
+            html += '<td>((EBITDA год × 3) - CAPEX) / CAPEX × 100</td></tr>';
+            
+            document.getElementById('roi-table').innerHTML = html;
+        }
+
+        function renderSummary(results) {
+            const scenarios = {
+                pessimistic: {name: 'Пессимистичный', color: 'red'},
+                base: {name: 'Базовый', color: 'yellow'},
+                optimistic: {name: 'Оптимистичный', color: 'green'}
+            };
+
+            Object.keys(scenarios).forEach(key => {
+                const r = results[key];
+                const html = `
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">Выручка в год</div>
+                        <div class="metric-value">${formatNumber(r.revenueYear)} ₽</div>
+                    </div>
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">EBITDA в год</div>
+                        <div class="metric-value ${r.ebitdaYear < 0 ? 'negative' : 'positive'}">${formatNumber(r.ebitdaYear)} ₽</div>
+                    </div>
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">EBITDA маржа</div>
+                        <div class="metric-value ${r.ebitdaMargin < 0 ? 'negative' : 'positive'}">${r.ebitdaMargin.toFixed(0)}%</div>
+                    </div>
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">Срок окупаемости</div>
+                        <div class="metric-value">${r.paybackMonths > 0 ? r.paybackMonths.toFixed(1) + ' мес' : 'Не окупается'}</div>
+                    </div>
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">ROI за 1 год</div>
+                        <div class="metric-value ${r.roi1Year < 0 ? 'negative' : 'positive'}">${r.roi1Year.toFixed(0)}%</div>
+                    </div>
+                    <div class="metric" style="border-color: var(--color-${scenarios[key].color}-border); background: var(--color-${scenarios[key].color}-bg);">
+                        <div class="metric-label">ROI за 3 года</div>
+                        <div class="metric-value ${r.roi3Years < 0 ? 'negative' : 'positive'}">${r.roi3Years.toFixed(0)}%</div>
+                    </div>
+                `;
+                document.getElementById(`summary-${key}`).innerHTML = html;
+            });
+        }
+
+        function renderDynamics(results) {
+            let html = '<tr><th>Месяц</th>';
+            html += '<th class="header-red">🔴 Коэф.</th><th class="header-red">🔴 Выручка</th><th class="header-red">🔴 EBITDA</th><th class="header-red">🔴 Накопл. CF</th>';
+            html += '<th class="header-yellow">🟡 Коэф.</th><th class="header-yellow">🟡 Выручка</th><th class="header-yellow">🟡 EBITDA</th><th class="header-yellow">🟡 Накопл. CF</th>';
+            html += '<th class="header-green">🟢 Коэф.</th><th class="header-green">🟢 Выручка</th><th class="header-green">🟢 EBITDA</th><th class="header-green">🟢 Накопл. CF</th>';
+            html += '</tr>';
+
+            const scenarios = ['pessimistic', 'base', 'optimistic'];
+            const colors = ['red', 'yellow', 'green'];
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            
+            for (let month = 0; month <= 12; month++) {
+                html += `<tr><td>${month === 0 ? '0 (Инвестиции)' : month + ' - ' + monthNames[month - 1]}</td>`;
+                
+                scenarios.forEach((scenario, idx) => {
+                    const r = results[scenario];
+                    if (month === 0) {
+                        html += `<td class="col-${colors[idx]}">-</td>`;
+                        html += `<td class="col-${colors[idx]}">0</td>`;
+                        html += `<td class="col-${colors[idx]}">0</td>`;
+                        html += `<td class="col-${colors[idx]} negative">${formatNumber(-r.capex)}</td>`;
+                    } else {
+                        const seasonality = getSeasonality(month);
+                        const revenueMonth = r.revenueMonth * seasonality;
+                        const grossProfitMonth = r.grossProfitMonth * seasonality;
+                        const ebitdaMonth = grossProfitMonth - r.opexMonth;
+                        
+                        let cumulativeCF = -r.capex;
+                        for (let m = 1; m <= month; m++) {
+                            const s = getSeasonality(m);
+                            const gp = r.grossProfitMonth * s;
+                            cumulativeCF += (gp - r.opexMonth);
+                        }
+                        
+                        html += `<td class="col-${colors[idx]}" style="font-weight: 600;">${seasonality.toFixed(2)}</td>`;
+                        html += `<td class="col-${colors[idx]}">${formatNumber(revenueMonth)}</td>`;
+                        html += `<td class="col-${colors[idx]} ${ebitdaMonth < 0 ? 'negative' : 'positive'}">${formatNumber(ebitdaMonth)}</td>`;
+                        html += `<td class="col-${colors[idx]} ${cumulativeCF < 0 ? 'negative' : 'positive'}">${formatNumber(cumulativeCF)}</td>`;
+                    }
+                });
+                
+                html += '</tr>';
+            }
+
+            document.getElementById('dynamics-table').innerHTML = html;
+        }
+
+        // Calculate on page load
+        window.addEventListener('load', calculate);
+    </script>
+</body>
+</html>
